@@ -1,43 +1,49 @@
-import { NextRequest,NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
-import { error } from "console";
 import User from "@/models/User";
-export async function POST (request:NextRequest){
-try {
-    const {email,password}= await request.json();
-    if(!email || !password){
-        return NextResponse.json({
-            error:"email and password required"
-        },{
-           status:400
-        })
+import { z } from "zod";
+
+const userSchema = z.object({
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+  });
+  
+  export async function POST(request: NextRequest) {
+    try {
+      const body = await request.json();
+  
+      
+      const parsedBody = userSchema.safeParse(body);
+      if (!parsedBody.success) {
+        return NextResponse.json(
+          { error: parsedBody.error.errors },
+          { status: 400 }
+        );
+      }
+  
+      const { email, password } = parsedBody.data;
+  
+      await dbConnect();
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 400 }
+        );
+      }
+  
+      const user = await User.create({ email, password });
+      await user.save();
+  
+      return NextResponse.json(
+        { message: "User successfully registered" },
+        { status: 201 }
+      );
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
     }
-
-    await dbConnect();
-    const existingUser=await User.findOne({email});
-    if(existingUser){
-        return NextResponse.json({
-            error:"email already registered"
-        },{
-           status:400
-        })
-    }
-
-    const user=await User.create({
-        email,password
-    });
-    await user.save();
-    return NextResponse.json({
-        message:"user succefully registered"
-    },{
-       status:201
-    })
-
-} catch (error) {
-    NextResponse.json({
-        error:"Internal server error"
-    },{
-       status:500
-    })
-}
-}
+  }
+  
