@@ -1,5 +1,5 @@
 import mongoose, { model, models, Schema } from "mongoose";
-import bcryptjs from "bcryptjs"
+
 
 export const VIDEO_DIMENSIONS={
     height:1920,
