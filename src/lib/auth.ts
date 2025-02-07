@@ -51,8 +51,13 @@ export const authOptions: NextAuthOptions = {
       }
       return session; // Ensure session is returned
     },
+  },pages:{
+   signIn:"/login",
+   error:"/error"
   },
   session: {
     strategy: "jwt",
+    maxAge:30*24*60*60
   },
+  secret:process.env.NEXTAUTH_SECRET
 };
