@@ -11,6 +11,7 @@ interface FileUploadProps {
   fileType?: "image" | "video";
 }
 
+
 export default function FileUpload({
   onSuccess,
   onProgress,
